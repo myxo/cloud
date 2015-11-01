@@ -8,25 +8,32 @@ class EngineInfo:
     def __init__(self, address, engine_id, cores_available=1):
         self.address = address
         self.cores_available = cores_available
-        self.task_active_list = []
+        self.task_active_list = {}
+        self.summary_active_core = 0
         self.engine_id = engine_id
 
         self.working_directory = '/home/worker/'
 
         self.status = 'available' #FIXME not string status
 
-    def send_task(self, task): #FIXME put client to engineInfo class
-        print_message(' --> send task ' + str(task.id) + ' to ' + self.address)
-        
+    def send_task(self, task): #FIXME put client to engineInfo class   
         self.status = 'busy'
-        self.task_active_list.append(task)
+        self.task_active_list[task.id] = task
         task.start_time = int(time.time())
 
         sftp = self.client.open_sftp()
         sftp.put(task.zip_file_path, self.working_directory + task.zip_filename)
         command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.engine_id)
         threading.Thread(target=engine_exec_command_handler, args=(self.client, command)).start()
+        self.summary_active_core += task.core_require
         
+    def task_done(self, task_id):
+        task = self.task_active_list[int(task_id)]
+        self.summary_active_core -= task.core_require
+        del self.task_active_list[int(task_id)]
+
+    def can_accept(self, task):
+        return task.core_require <= self.cores_available - self.summary_active_core
 
 
     def connect(self, username, userpass):

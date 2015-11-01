@@ -2,7 +2,7 @@ import socket
 import time
 
 def send_task(task_name):
-    print time.strftime("[ %H:%M:%S] ") + 'send task ' + task_name
+    print time.strftime("[ %H:%M:%S ] ") + 'send task ' + task_name
     sock = socket.socket()
     # sock.connect(('myxomaster.cloudapp.net', 9090))
     sock.connect(('localhost', 9090))
@@ -16,9 +16,9 @@ def send_task(task_name):
 
 
 send_task('/home/myxo/univer/cloud/task1')
-time.sleep(2)
+time.sleep(1)
 send_task('/home/myxo/univer/cloud/task2')
-time.sleep(2)
+time.sleep(1)
 send_task('/home/myxo/univer/cloud/task3')
 # time.sleep(2)
 # send_task('/home/myxo/univer/cloud/task2')

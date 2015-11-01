@@ -21,7 +21,7 @@ class ClientListener:
                 connection, address = self.socket.accept()
             except KeyboardInterrupt:
                 sys.exit(0)
-            print_message('\to task connection from ' +  str(address))
+            print_message('  o  client connection from ' +  str(address))
             threading.Thread(target=handle, args=(connection, self.taskpool)).start()
 
 
@@ -40,6 +40,6 @@ def handle(client, taskpool):
     lock.acquire()
     taskpool.add_new_task(task)
     lock.release()
-    print_message(' + add new task ' + task_name)
+    
 
     client.close()
