@@ -43,6 +43,11 @@ class TaskPool:
         #                 engine.status = 'available'
         #                 return
 
+        if task_status == 'done':
+            print_message(' - task done ' + str(task_id))
+        elif task_status == 'time':
+            print_message(' -!! task timeout ' + str(task_id))
+
 
     def close_connection(self):
         for engine in self.engine_list:
