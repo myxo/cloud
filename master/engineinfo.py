@@ -12,7 +12,7 @@ class EngineInfo:
         self.summary_active_core = 0
         self.engine_id = engine_id
 
-        self.working_directory = '/home/worker/'
+        self.working_directory = '/home/worker/' # FIXME get working path
 
         self.status = 'available' #FIXME not string status
 
@@ -22,6 +22,7 @@ class EngineInfo:
         task.start_time = int(time.time())
 
         sftp = self.client.open_sftp()
+        # FIXME add exeption to this
         sftp.put(task.zip_file_path, self.working_directory + task.zip_filename)
         command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.engine_id)
         threading.Thread(target=engine_exec_command_handler, args=(self.client, command)).start()

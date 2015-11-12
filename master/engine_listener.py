@@ -20,7 +20,7 @@ class EngineListener:  # FIXME code for listener pretty much the same =\
                 connection, address = self.socket.accept()
             except KeyboardInterrupt:
                 sys.exit(0)
-            print_message(' <-- engine connection from ' +  str(address))
+            # print_message(' <-- engine connection from ' +  str(address))
             threading.Thread(target=handle, args=(connection, address, self.taskpool)).start()
 
 

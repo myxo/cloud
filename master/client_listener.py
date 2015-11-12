@@ -20,6 +20,7 @@ class ClientListener:
             try:
                 connection, address = self.socket.accept()
             except KeyboardInterrupt:
+                self.taskpool.close_connection()
                 sys.exit(0)
             print_message('  o  client connection from ' +  str(address))
             threading.Thread(target=handle, args=(connection, self.taskpool)).start()

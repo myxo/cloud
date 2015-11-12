@@ -1,37 +1,22 @@
-import socket
 import threading
-import json
+from BaseHTTPServer import HTTPServer
 
 from taskpool import TaskPool
-# from task import Task
 from client_listener import ClientListener
 from engine_listener import EngineListener
+from clientHTTPlistener import ClientHTTPListener
 
-f = open('taskpool_config', 'r')
-tp_conf = json.load(f)
-f.close
 
-tp = TaskPool(tp_conf)
-clistener = ClientListener(tp)
-elistener = EngineListener(tp)
+
+tp = TaskPool()
+clientListener = ClientListener(tp)
+engineListener = EngineListener(tp)
 
 threading.Thread(target=tp.loop, args=()).start()
-threading.Thread(target=elistener.loop, args=()).start()
+threading.Thread(target=engineListener.loop, args=()).start()
+threading.Thread(target=clientListener.loop, args=()).start()
 
-clistener.loop()
 
+serv = HTTPServer(("localhost", 8889), ClientHTTPListener)
+serv.serve_forever()
 
-# task1 = Task('/home/myxo/univer/cloud/task1')
-# task2 = Task('/home/myxo/univer/cloud/task2')
-# task3 = Task('/home/myxo/univer/cloud/task3')
-# tp.add_new_task(task1)
-# tp.add_new_task(task2)
-# tp.add_new_task(task3)
-
-# tp.add_new_task("task2.py")
-# tp.add_new_task("task3.py")
-
-# tp.connect_to_engines()
-# tp.run_task()
-# tp.loop()
-# tp.close_connection()

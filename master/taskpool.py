@@ -1,24 +1,20 @@
-# from Queue import Queue
-import paramiko
 import time
-import socket
+import json
 
 from engineinfo import EngineInfo
 from utils import *
 
 class TaskPool:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
+        f = open('taskpool_config', 'r')
+        self.config = json.load(f)
+        f.close
 
         self.task_quere = Queue()
         self.engine_list = []
         # self.clients_list = []
         self.username = self.config['engine username']
         self.userpass = self.config['engine password']
-
-        # self.listner_socket = socket.socket()
-        # self.listner_socket.bind(('', 9095))
-        # self.listner_socket.listen(5)
 
         self.init_engines()
 
