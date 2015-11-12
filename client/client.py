@@ -72,10 +72,10 @@ def zip(path_to_task_folder, task_id):
     return zip_file_path
 
 
-# send_task('/home/myxo/univer/cloud/task1')
-# time.sleep(1)
-# send_task('/home/myxo/univer/cloud/task2')
-# time.sleep(1)
+send_task('/home/myxo/univer/cloud/task1')
+time.sleep(1)
+send_task('/home/myxo/univer/cloud/task2')
+time.sleep(1)
 send_task('/home/myxo/univer/cloud/task3')
 # time.sleep(2)
 # send_task('/home/myxo/univer/cloud/task2')
