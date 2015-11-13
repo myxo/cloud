@@ -29,7 +29,7 @@ class TaskPool:
         self.task_quere.put(task)
         print_message('  +  add new task ' + str(task.id))
 
-    def task_done(self, task_id, task_status, engine_id, engine_address):
+    def task_done(self, task_id, task_status, engine_id):
         self.engine_list[engine_id].status = 'available'
         self.engine_list[engine_id].task_done(task_id)
 
