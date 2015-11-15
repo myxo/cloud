@@ -24,6 +24,7 @@ class TaskPool:
 
         for engine in self.engine_list:
             engine.connect(self.username, self.userpass)
+            print engine.address + ' ready'
 
     def add_new_task(self, task):
         self.task_quere.put(task)

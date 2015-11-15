@@ -17,4 +17,5 @@ if __name__ == '__main__':
     request_content['engine_id']        = engine_id
     request_content['task_status']      = task_status_str
 
-    requests.post('http://localhost:8889', files=request_content)
+    requests.post('http://192.168.0.108:8889', files=request_content)
+    # requests.post('http://localhost:8889', files=request_content)

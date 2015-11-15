@@ -1,18 +1,21 @@
 import paramiko
 import time
 import threading
+import subprocess
 
 from utils import *
 
 class EngineInfo:
     def __init__(self, address, engine_id, cores_available=1):
         self.address = address
+        self.engine_username = 'worker'
         self.cores_available = cores_available
         self.task_active_list = {}
         self.summary_active_core = 0
         self.engine_id = engine_id
 
         self.working_directory = '/home/worker/' # FIXME get working path
+        self.rsync_files(address, self.engine_username, self.working_directory)
 
         self.status = 'available' #FIXME not string status
 
@@ -45,6 +48,13 @@ class EngineInfo:
         except:
             print 'ERROR in connection to engine ' + self.address
             self.status = 'off'
+
+    def rsync_files(self, address, username, folder_to):
+        files = ['../engine/engine_script.sh', 
+                '../engine/check_is_done.py',
+                '../engine/upload_result.py']
+        for f in files:
+            subprocess.call(['rsync', f, username + '@' + address + ':' + folder_to])
 
     def disconnect(self):
         self.client.close()
