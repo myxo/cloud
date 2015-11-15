@@ -17,7 +17,8 @@ def httpServerFactory(init_args):
             self.send_response(200)
             self.send_header('content-type','text/html')
             self.end_headers()
-            self.wfile.write("hello !\nWrong way =))")
+            # self.wfile.write("hello !\nWrong way =))")
+            self.wfile.write(self.taskpool.json_info())
 
         def do_POST(self):
             form = cgi.FieldStorage(
@@ -36,7 +37,6 @@ def httpServerFactory(init_args):
 
             request_type = form['request_type'].value
             lock = threading.Lock()
-            print 'checkpoint (' + request_type + ')'
             if request_type == 'new_task':
                 task = Task(file_abs_path)
                 lock.acquire()
@@ -54,5 +54,7 @@ def httpServerFactory(init_args):
 
             self.send_response(200)
 
+        def log_message(self, format, *args):
+            pass
 
     return ClientHTTPListener

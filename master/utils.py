@@ -31,3 +31,6 @@ class Queue:
         except:
             print "ERROR in Queue: there is no element"
             return None
+
+    def get_list(self):
+        return [x for x in self.list]

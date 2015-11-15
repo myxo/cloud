@@ -20,7 +20,7 @@ class TaskPool:
 
     def init_engines(self):
         for i, engine_address in enumerate(self.config['engine address']):
-            self.engine_list.append(EngineInfo(engine_address, i, cores_available=2))
+            self.engine_list.append(EngineInfo(engine_address, i, cores_available=1))
 
         for engine in self.engine_list:
             engine.connect(self.username, self.userpass)
@@ -39,6 +39,15 @@ class TaskPool:
         elif task_status == 'time':
             print_message(' !-! task timeout ' + str(task_id), 'red')
 
+    def json_info(self):
+        status = {}
+        status['engine names'] = [engine.address for engine in self.engine_list]
+        status['task waiting'] = [str(task.id) for task in self.task_quere.get_list()]
+        for engine in self.engine_list:
+            status[str(engine.engine_id)] = [str(task.id) for task in engine.task_active_list.values()]
+
+        return json.dumps(status)
+                
 
     def close_connection(self):
         for engine in self.engine_list:
@@ -57,6 +66,5 @@ class TaskPool:
                         t = self.task_quere.get()
                         engine.send_task(t)
                         print_message(' --> send task ' + str(t.id) + ' to ' + engine.address + ' ' + str(engine.engine_id), 'blue')
-
-            time.sleep(2)
+            time.sleep(1)
             # print self.task_quere[0]

@@ -25,7 +25,9 @@ def send_task(task_path):
     config = get_config(task_path)
     zip_path = zip(task_path, config['id'])
     print 'send task file ' + zip_path
-    requests.post('http://localhost:8889', files={'file': open(zip_path, 'rb'), 'request_type': 'new_task'})
+    # url = 'http://localhost:8889'
+    url = 'http://192.168.0.108:8889'
+    requests.post(url, files={'file': open(zip_path, 'rb'), 'request_type': 'new_task'})
     os.remove(zip_path)
 
 
@@ -91,10 +93,10 @@ def zip(path_to_task_folder, task_id):
 
 
 send_task('/home/myxo/univer/cloud/task1')
-# time.sleep(1)
-# send_task('/home/myxo/univer/cloud/task2')
-# time.sleep(1)
-# send_task('/home/myxo/univer/cloud/task3')
+time.sleep(1)
+send_task('/home/myxo/univer/cloud/task2')
+time.sleep(1)
+send_task('/home/myxo/univer/cloud/task3')
 # time.sleep(2)
 # send_task('/home/myxo/univer/cloud/task2')
 # time.sleep(2)
