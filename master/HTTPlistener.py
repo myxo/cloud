@@ -4,13 +4,14 @@ import cgi
 import threading
 
 from task import Task
+from utils import *
 
 
 def httpServerFactory(init_args):
-    class ClientHTTPListener(BaseHTTPRequestHandler, object):
+    class HTTPListener(BaseHTTPRequestHandler, object):
         def __init__(self, *args, **kwargs):
             self.taskpool = init_args['taskpool']
-            super(ClientHTTPListener, self).__init__(*args, **kwargs)
+            super(HTTPListener, self).__init__(*args, **kwargs)
 
 
         def do_GET(self):
@@ -19,6 +20,7 @@ def httpServerFactory(init_args):
             self.end_headers()
             # self.wfile.write("hello !\nWrong way =))")
             self.wfile.write(self.taskpool.json_info())
+            # print_message( self.taskpool.json_info())
 
         def do_POST(self):
             form = cgi.FieldStorage(
@@ -55,6 +57,9 @@ def httpServerFactory(init_args):
             self.send_response(200)
 
         def log_message(self, format, *args):
-            pass
+            LOGFILE = 'http.log'
+            open(LOGFILE, "a").write("%s - - [%s] %s\n" % (self.address_string(),
+                        self.log_date_time_string(),
+                        format%args))
 
-    return ClientHTTPListener
+    return HTTPListener

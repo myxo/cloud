@@ -52,7 +52,8 @@ class EngineInfo:
     def rsync_files(self, address, username, folder_to):
         files = ['../engine/engine_script.sh', 
                 '../engine/check_is_done.py',
-                '../engine/upload_result.py']
+                '../engine/upload_result.py',
+                '../engine/engine_config']
         for f in files:
             subprocess.call(['rsync', f, username + '@' + address + ':' + folder_to])
 

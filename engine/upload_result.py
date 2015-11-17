@@ -1,6 +1,18 @@
 import sys
 import requests
+import json
 
+def get_engine_config():
+    config = {}
+    try:
+        f = open('../engine_config', 'r')
+        config = json.load(f)
+        f.close
+    except:
+        config['master_url'] = 'http://localhost:8889'
+        with open('../engine_config', 'w') as f:
+            json.dump(config, f)
+    return config
 
 if __name__ == '__main__':
     filename    = sys.argv[1]
@@ -17,5 +29,8 @@ if __name__ == '__main__':
     request_content['engine_id']        = engine_id
     request_content['task_status']      = task_status_str
 
-    requests.post('http://192.168.0.108:8889', files=request_content)
+    engine_config = get_engine_config()
+    url = engine_config['master_url']
+
+    requests.post(url, files=request_content)
     # requests.post('http://localhost:8889', files=request_content)

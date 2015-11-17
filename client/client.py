@@ -1,4 +1,3 @@
-# import socket
 import time
 
 import numpy.random
@@ -8,30 +7,29 @@ import json
 import requests
 
 
-# def send_task(task_name):
-#     print time.strftime("[ %H:%M:%S ] ") + 'send task ' + task_name
-#     sock = socket.socket()
-#     # sock.connect(('myxomaster.cloudapp.net', 9090))
-#     sock.connect(('localhost', 9090))
-#     sock.send('i am rock')
-#     sock.send(task_name)
-
-#     # data = sock.recv(1024)
-
-#     # print data
-#     sock.close()
-
 def send_task(task_path):
-    config = get_config(task_path)
-    zip_path = zip(task_path, config['id'])
+    client_config   = get_client_config()
+    task_config     = get_task_config(task_path)
+    zip_path = zip(task_path, task_config['id'])
     print 'send task file ' + zip_path
-    # url = 'http://localhost:8889'
-    url = 'http://192.168.0.108:8889'
+
+    url = client_config['master_url']
     requests.post(url, files={'file': open(zip_path, 'rb'), 'request_type': 'new_task'})
     os.remove(zip_path)
 
 
-def get_config(path_to_task_folder):
+def get_client_config():
+    config = {}
+    try:
+        f = open('client_config', 'r')
+        config = json.load(f)
+        f.close
+    except:
+        config['master_url': 'http://localhost:8889']
+    return config
+
+
+def get_task_config(path_to_task_folder):
     config = {}
     try:
         f = open(path_to_task_folder + '/task_configuration', 'r')
@@ -39,19 +37,21 @@ def get_config(path_to_task_folder):
         f.close()
         config['id'] = numpy.random.randint(1e15)
     except:
-        config = default_config(path_to_task_folder)
+        config = task_default_config(path_to_task_folder)
 
     f = open(path_to_task_folder + '/task_configuration', 'w')
     json.dump(config, f)
     f.close()
     return config
 
-def default_config(path_to_task_folder):
+
+def task_default_config(path_to_task_folder):
     config = {}
     config['id'] = numpy.random.randint(1e15)
     config['core_require'] = 1
     config['timeout'] = 30
     return config
+
 
 def zip(path_to_task_folder, task_id):
     folder = path_to_task_folder
@@ -60,13 +60,6 @@ def zip(path_to_task_folder, task_id):
     zip_file_path = os.path.abspath(zipname)
     if os.path.isfile(zip_file_path):
         return zip_file_path
-
-    # if not os.path.isdir(path_to_task_folder + '/result'):
-    #     if os.path.exists(path_to_task_folder + '/result'):
-    #         os.remove(path_to_task_folder + '/result')
-    #     print path_to_task_folder + '/result'
-    #     os.makedirs(path_to_task_folder + '/result')
-    #     open(path_to_task_folder + '/result/1', 'a').close() #dirty hack (overwise result folder does not created)
 
     zipf = zipfile.ZipFile(zip_file_path, 'w')
     for root, dirs, files in os.walk(folder):
@@ -80,16 +73,6 @@ def zip(path_to_task_folder, task_id):
     zipf.close()
     return zip_file_path
 
-# def zip(path_to_task_folder, task_id):
-#     if not os.path.isdir(path_to_task_folder + '/result'):
-#         if os.path.exists(path_to_task_folder + '/result'):
-#             os.remove(path_to_task_folder + '/result')
-#         os.makedirs(path_to_task_folder + '/result')
-
-#     import subprocess
-#     zip_filename = str(task_id) + '.zip'
-#     cmd = 'zip {0} {1}', str()
-#     subprocess.Popen(cmd)
 
 
 send_task('/home/myxo/univer/cloud/task1')

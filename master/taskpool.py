@@ -1,14 +1,13 @@
 import time
 import json
+import threading
 
 from engineinfo import EngineInfo
 from utils import *
 
 class TaskPool:
-    def __init__(self):
-        f = open('taskpool_config', 'r')
-        self.config = json.load(f)
-        f.close
+    def __init__(self, config):
+        self.config = config
 
         self.task_quere = Queue()
         self.engine_list = []
@@ -43,9 +42,9 @@ class TaskPool:
     def json_info(self):
         status = {}
         status['engine names'] = [engine.address for engine in self.engine_list]
-        status['task waiting'] = [str(task.id) for task in self.task_quere.get_list()]
+        status['task waiting'] = [task.id for task in self.task_quere.get_list()]
         for engine in self.engine_list:
-            status[str(engine.engine_id)] = [str(task.id) for task in engine.task_active_list.values()]
+            status[str(engine.engine_id)] = [task.id for task in engine.task_active_list.values()]
 
         return json.dumps(status)
                 
@@ -56,7 +55,9 @@ class TaskPool:
 
     def loop(self):
         print 'taskpool: start loop'
+        lock = threading.Lock()
         while 1:
+            lock.acquire()
             for i, engine in enumerate(self.engine_list):
                 if engine.status == 'off':
                     continue
@@ -67,5 +68,6 @@ class TaskPool:
                         t = self.task_quere.get()
                         engine.send_task(t)
                         print_message(' --> send task ' + str(t.id) + ' to ' + engine.address + ' ' + str(engine.engine_id), 'blue')
+            lock.release()
             time.sleep(1)
             # print self.task_quere[0]
