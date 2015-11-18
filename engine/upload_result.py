@@ -23,7 +23,7 @@ if __name__ == '__main__':
     task_status_str = 'done' if int(task_status) == 0 else 'time'
 
     request_content = {}
-    request_content['request_type']    = 'task_done'
+    request_content['request_type']     = 'task_done'
     request_content['file']             = open(filename, 'rb')
     request_content['task_id']          = task_id
     request_content['engine_id']        = engine_id
@@ -33,4 +33,3 @@ if __name__ == '__main__':
     url = engine_config['master_url']
 
     requests.post(url, files=request_content)
-    # requests.post('http://localhost:8889', files=request_content)

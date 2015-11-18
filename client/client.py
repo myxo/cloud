@@ -5,15 +5,17 @@ import os
 import zipfile
 import json
 import requests
+import sys
 
 
-def send_task(task_path):
+def send_task(task_path, url=None):
     client_config   = get_client_config()
     task_config     = get_task_config(task_path)
     zip_path = zip(task_path, task_config['id'])
     print 'send task file ' + zip_path
 
-    url = client_config['master_url']
+    if url == None:
+        url = client_config['master_url']
     requests.post(url, files={'file': open(zip_path, 'rb'), 'request_type': 'new_task'})
     os.remove(zip_path)
 
@@ -74,12 +76,13 @@ def zip(path_to_task_folder, task_id):
     return zip_file_path
 
 
+url = sys.argv[1] if len(sys.argv) > 1 else None
 
-send_task('/home/myxo/univer/cloud/task1')
+send_task('/home/myxo/univer/cloud/task1', url)
 time.sleep(1)
-send_task('/home/myxo/univer/cloud/task2')
+send_task('/home/myxo/univer/cloud/task2', url)
 time.sleep(1)
-send_task('/home/myxo/univer/cloud/task3')
+send_task('/home/myxo/univer/cloud/task3', url)
 # time.sleep(2)
 # send_task('/home/myxo/univer/cloud/task2')
 # time.sleep(2)
