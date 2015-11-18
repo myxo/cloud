@@ -33,7 +33,7 @@ def httpServerFactory(init_args):
             
             filename    = form['file'].filename
             data        = form['file'].file.read()
-            file_abs_path = "/home/myxo/univer/cloud/tmp_tasks/%s"%filename
+            file_abs_path = "../tmp_tasks/%s"%filename
             open(file_abs_path, "wb").write(data)
 
 
