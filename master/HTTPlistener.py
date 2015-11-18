@@ -18,9 +18,7 @@ def httpServerFactory(init_args):
             self.send_response(200)
             self.send_header('content-type','text/html')
             self.end_headers()
-            # self.wfile.write("hello !\nWrong way =))")
             self.wfile.write(self.taskpool.json_info())
-            # print_message( self.taskpool.json_info())
 
         def do_POST(self):
             form = cgi.FieldStorage(
@@ -30,11 +28,14 @@ def httpServerFactory(init_args):
                              'CONTENT_TYPE':self.headers['Content-Type'],
                              })
 
-            
-            filename    = form['file'].filename
-            data        = form['file'].file.read()
-            file_abs_path = "/home/myxo/univer/cloud/tmp_tasks/%s"%filename
-            open(file_abs_path, "wb").write(data)
+            try:
+                filename    = form['file'].filename
+                data        = form['file'].file.read()
+                file_abs_path = "../tmp_tasks/%s"%filename
+                open(file_abs_path, "wb").write(data)
+            except:
+                self.send_response(400)
+                return
 
 
             request_type = form['request_type'].value
