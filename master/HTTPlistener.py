@@ -38,7 +38,12 @@ def httpServerFactory(init_args):
                 return
 
 
-            request_type = form['request_type'].value
+            try:
+                request_type = form['request_type'].value
+            except:
+                self.send_response(400)
+                return
+
             lock = threading.Lock()
             if request_type == 'new_task':
                 task = Task(file_abs_path)
