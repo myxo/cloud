@@ -28,7 +28,7 @@ class EngineInfo:
         # FIXME add exeption to this
         sftp.put(task.zip_file_path, self.working_directory + task.zip_filename)
         command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.engine_id)
-        threading.Thread(target=engine_exec_command_handler, args=(self.client, command)).start()
+        threading.Thread(target=engine_exec_command_handler, args=(self.client, command, task)).start()
         self.summary_active_core += task.core_require
         
     def task_done(self, task_id):
@@ -61,7 +61,6 @@ class EngineInfo:
         self.client.close()
 
 
-def engine_exec_command_handler(client, command):
+def engine_exec_command_handler(client, command, task):
     stdin, stdout, stderr = client.exec_command(command)
-    for line in stderr:
-        print line
+    task.stderr = stderr.read()

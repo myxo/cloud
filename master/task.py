@@ -1,5 +1,6 @@
 import zipfile
 import json
+# import threading
 
 class Task:
     def __init__(self, path_to_task):
@@ -16,5 +17,8 @@ class Task:
         self.zip_filename = str(self.id) + '.zip'
         self.zip_result_filename = str(self.id) + '_result.zip'
 
+        # self.done_event = threading.Event()
         self.status = 'waiting'
         self.server_id = None
+
+        self.stderr = ''

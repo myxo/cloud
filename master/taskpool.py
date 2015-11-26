@@ -32,6 +32,9 @@ class TaskPool:
         print_message('  +  add new task ' + str(task.id))
 
     def task_done(self, task_id, task_status, engine_id):
+        # self.alltask[task_id].done_event.wait()
+        # print self.alltask[task_id].done_event.isSet()
+
         self.engine_list[engine_id].status = 'available'
         self.engine_list[engine_id].task_done(task_id)
 
@@ -41,6 +44,11 @@ class TaskPool:
             print_message('  -  task done ' + str(task_id), 'green')
         elif task_status == 'time':
             print_message(' !-! task timeout ' + str(task_id), 'red')
+
+        # # if self.alltask[task_id].stderr != '':
+        # print 'STDERR:'
+        # print self.alltask[task_id].stderr
+        # print self.alltask[task_id]
 
     def json_info(self):
         status = {}

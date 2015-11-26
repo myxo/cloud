@@ -4,6 +4,7 @@ import cgi
 import threading
 import urlparse
 import os
+import zipfile
 
 from task import Task
 from utils import *
@@ -13,7 +14,7 @@ def httpServerFactory(init_args):
     class HTTPListener(BaseHTTPRequestHandler, object):
         def __init__(self, *args, **kwargs):
             self.taskpool = init_args['taskpool']
-            self.file_storage = '../task_tmp/'
+            self.file_storage = '../tmp_tasks/'
             super(HTTPListener, self).__init__(*args, **kwargs)
 
 
@@ -41,7 +42,6 @@ def httpServerFactory(init_args):
 
 
             elif path == '/task_status' or path == '/task_status/':
-
                 if 'task_id' not in args:
                     self.send_response(400)
                     self.send_header('content-type','text/html')
@@ -56,6 +56,7 @@ def httpServerFactory(init_args):
                     self.end_headers()
                     self.wfile.write("there is no task with %d id"%task_id)
                     return
+
                 task_status = self.taskpool.alltask[task_id].status
                 self.send_response(200)
                 self.send_header('content-type','text/html')
@@ -86,6 +87,15 @@ def httpServerFactory(init_args):
                 if task_status == 'done':
                     basename = str(task_id) + '_result.zip'
                     filename = self.file_storage + basename
+
+                    # FIXME adding stderr to archive shoud be sooner 
+                    # (not in request handler, maybe another thread with event lock?)
+                    # + duplication error when get result 2 times
+                    task_stderr = self.taskpool.alltask[task_id].stderr
+                    if task_stderr != '':
+                        z = zipfile.ZipFile(filename, "a", zipfile.ZIP_DEFLATED)
+                        z.writestr('stderr.txt', task_stderr)
+                        z.close()
 
                     self.send_response(200)
                     # print 'Content-Type', 'application/zip; name="%s"'%basename
@@ -121,11 +131,12 @@ def httpServerFactory(init_args):
             try:
                 filename    = form['file'].filename
                 data        = form['file'].file.read()
-                file_abs_path = self.file_storage + "%s"%filename
-                open(file_abs_path, "wb").write(data)
             except:
                 self.send_response(400)
                 return
+            
+            file_abs_path = self.file_storage + "%s"%filename
+            open(file_abs_path, "wb").write(data)
 
 
             try:
@@ -145,9 +156,9 @@ def httpServerFactory(init_args):
                 task_id     = int(form['task_id'].value)
                 engine_id   = int(form['engine_id'].value)
                 task_status = form['task_status'].value
-                lock.acquire()
+                # lock.acquire()
                 self.taskpool.task_done(task_id, task_status, engine_id)
-                lock.release()
+                # lock.release()
                 
 
             self.send_response(200)
