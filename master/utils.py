@@ -5,6 +5,9 @@ def print_message(message, color=None):
     s = time.strftime("[ %H:%M:%S ] ") + message
     print colored(s, color)
 
+    LOGFILE = 'tp.log'
+    open(LOGFILE, "a").write(s + '\n')
+
 
 class Queue:
     def __init__(self):

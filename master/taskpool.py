@@ -10,6 +10,7 @@ class TaskPool:
         self.config = config
 
         self.task_quere = Queue()
+        self.alltask = {}
         self.engine_list = []
         # self.clients_list = []
         self.username = self.config['engine username']
@@ -27,12 +28,14 @@ class TaskPool:
 
     def add_new_task(self, task):
         self.task_quere.put(task)
+        self.alltask[task.id] = task
         print_message('  +  add new task ' + str(task.id))
 
     def task_done(self, task_id, task_status, engine_id):
         self.engine_list[engine_id].status = 'available'
         self.engine_list[engine_id].task_done(task_id)
 
+        self.alltask[task_id].status = task_status
 
         if task_status == 'done':
             print_message('  -  task done ' + str(task_id), 'green')
@@ -66,6 +69,9 @@ class TaskPool:
                 if not self.task_quere.empty():
                     if engine.can_accept(self.task_quere.head()):
                         t = self.task_quere.get()
+                        self.alltask[t.id].engine_id = engine.engine_id
+                        self.alltask[t.id].ststus = 'proceed'
+                        
                         engine.send_task(t)
                         print_message(' --> send task ' + str(t.id) + ' to ' + engine.address + ' ' + str(engine.engine_id), 'blue')
             lock.release()

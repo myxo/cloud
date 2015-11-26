@@ -2,6 +2,8 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 
 import cgi
 import threading
+import urlparse
+import os
 
 from task import Task
 from utils import *
@@ -11,14 +13,102 @@ def httpServerFactory(init_args):
     class HTTPListener(BaseHTTPRequestHandler, object):
         def __init__(self, *args, **kwargs):
             self.taskpool = init_args['taskpool']
+            self.file_storage = '../task_tmp/'
             super(HTTPListener, self).__init__(*args, **kwargs)
 
 
         def do_GET(self):
-            self.send_response(200)
-            self.send_header('content-type','text/html')
-            self.end_headers()
-            self.wfile.write(self.taskpool.json_info())
+            url_splited = urlparse.urlsplit(self.path)
+            path = url_splited.path
+            args = urlparse.parse_qs(url_splited.query)
+
+            if path == '/status' or path == '/status/':
+                self.send_response(200)
+                self.send_header('content-type','text/json')
+                self.end_headers()
+                self.wfile.write(self.taskpool.json_info())
+            
+
+
+
+            elif path == '' or path == '/':
+                self.send_response(200)
+                self.send_header('content-type','text/html')
+                self.end_headers()
+                self.wfile.write('hello =)\n\n')
+            
+
+
+
+            elif path == '/task_status' or path == '/task_status/':
+
+                if 'task_id' not in args:
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("you should write propper task_id")
+                    return
+
+                task_id = int(args['task_id'][0])
+                if task_id not in self.taskpool.alltask:
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("there is no task with %d id"%task_id)
+                    return
+                task_status = self.taskpool.alltask[task_id].status
+                self.send_response(200)
+                self.send_header('content-type','text/html')
+                self.end_headers()
+                self.wfile.write(task_status)
+
+
+
+
+
+            elif path == '/task_result' or path == '/task_result/':
+                if 'task_id' not in args:
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("you should write propper task_id")
+                    return
+
+                task_id = int(args['task_id'][0])
+                if task_id not in self.taskpool.alltask:
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("there is no task with %d id"%task_id)
+                    return
+
+                task_status = self.taskpool.alltask[task_id].status
+                if task_status == 'done':
+                    basename = str(task_id) + '_result.zip'
+                    filename = self.file_storage + basename
+
+                    self.send_response(200)
+                    # print 'Content-Type', 'application/zip; name="%s"'%basename
+                    self.send_header('Content-Type', 'application/zip')
+                    self.send_header('Content-Length', os.path.getsize(filename))
+                    self.send_header('Content-Disposition', 'attachment;'
+                        'filename="%s"' % basename)
+                    self.send_header('Filename', basename)
+                    
+                    self.end_headers()
+                    self.wfile.write(open(filename, 'rb').read())
+                else:
+                    self.send_response(200)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write(task_status)
+                
+
+            else:
+                self.send_response(404)
+                self.send_header('content-type','text/html')
+                self.end_headers()
+                self.wfile.write('0_o\n\n')
 
         def do_POST(self):
             form = cgi.FieldStorage(
@@ -31,7 +121,7 @@ def httpServerFactory(init_args):
             try:
                 filename    = form['file'].filename
                 data        = form['file'].file.read()
-                file_abs_path = "../tmp_tasks/%s"%filename
+                file_abs_path = self.file_storage + "%s"%filename
                 open(file_abs_path, "wb").write(data)
             except:
                 self.send_response(400)

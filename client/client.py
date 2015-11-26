@@ -79,9 +79,9 @@ def zip(path_to_task_folder, task_id):
 url = sys.argv[1] if len(sys.argv) > 1 else None
 
 send_task('/home/myxo/univer/cloud/task1', url)
-time.sleep(1)
+# time.sleep(1)
 send_task('/home/myxo/univer/cloud/task2', url)
-time.sleep(1)
+# time.sleep(1)
 send_task('/home/myxo/univer/cloud/task3', url)
 # time.sleep(2)
 # send_task('/home/myxo/univer/cloud/task2')
