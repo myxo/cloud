@@ -23,11 +23,19 @@ def httpServerFactory(init_args):
             path = url_splited.path
             args = urlparse.parse_qs(url_splited.query)
 
-            if path == '/status' or path == '/status/':
+
+
+            if path == '/statusjson' or path == '/statusjson/':
                 self.send_response(200)
                 self.send_header('content-type','text/json')
                 self.end_headers()
                 self.wfile.write(self.taskpool.json_info())
+
+            elif path == '/status' or path == '/status/':
+                self.send_response(200)
+                self.send_header('content-type','text/html')
+                self.end_headers()
+                self.wfile.write(open('status.html', 'rb').read())
             
 
 

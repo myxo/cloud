@@ -22,3 +22,4 @@ class Task:
         self.server_id = None
 
         self.stderr = ''
+        self.stdout = ''

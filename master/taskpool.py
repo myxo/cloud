@@ -2,7 +2,7 @@ import time
 import json
 import threading
 
-from engineinfo import EngineInfo
+from engineControl import EngineControl
 from utils import *
 
 class TaskPool:
@@ -12,32 +12,32 @@ class TaskPool:
         self.task_quere = Queue()
         self.alltask = {}
         self.engine_list = []
-        # self.clients_list = []
         self.username = self.config['engine username']
         self.userpass = self.config['engine password']
 
         self.init_engines()
 
+
     def init_engines(self):
         for i, engine_address in enumerate(self.config['engine address']):
-            self.engine_list.append(EngineInfo(engine_address, i, cores_available=1))
+            self.engine_list.append(EngineControl(engine_address, i, cores_available=1))
 
         for engine in self.engine_list:
             engine.connect(self.username, self.userpass)
             print engine.address + ' ready'
+
 
     def add_new_task(self, task):
         self.task_quere.put(task)
         self.alltask[task.id] = task
         print_message('  +  add new task ' + str(task.id))
 
+
     def task_done(self, task_id, task_status, engine_id):
         # self.alltask[task_id].done_event.wait()
         # print self.alltask[task_id].done_event.isSet()
 
-        self.engine_list[engine_id].status = 'available'
         self.engine_list[engine_id].task_done(task_id)
-
         self.alltask[task_id].status = task_status
 
         if task_status == 'done':
@@ -45,17 +45,13 @@ class TaskPool:
         elif task_status == 'time':
             print_message(' !-! task timeout ' + str(task_id), 'red')
 
-        # # if self.alltask[task_id].stderr != '':
-        # print 'STDERR:'
-        # print self.alltask[task_id].stderr
-        # print self.alltask[task_id]
 
     def json_info(self):
         status = {}
-        status['engine names'] = [engine.address for engine in self.engine_list]
-        status['task waiting'] = [task.id for task in self.task_quere.get_list()]
+        status['engine_names'] = [engine.address for engine in self.engine_list]
+        status['task_waiting'] = [task.id for task in self.task_quere.get_list()]
         for engine in self.engine_list:
-            status[str(engine.engine_id)] = [task.id for task in engine.task_active_list.values()]
+            status[str(engine.id)] = [task.id for task in engine.task_active_list.values()]
 
         return json.dumps(status)
                 
@@ -63,6 +59,7 @@ class TaskPool:
     def close_connection(self):
         for engine in self.engine_list:
             engine.disconnect()
+
 
     def loop(self):
         print 'taskpool: start loop'
@@ -77,11 +74,11 @@ class TaskPool:
                 if not self.task_quere.empty():
                     if engine.can_accept(self.task_quere.head()):
                         t = self.task_quere.get()
-                        self.alltask[t.id].engine_id = engine.engine_id
-                        self.alltask[t.id].ststus = 'proceed'
+                        self.alltask[t.id].engine_id = engine.id
+                        self.alltask[t.id].status = 'proceed'
                         
                         engine.send_task(t)
-                        print_message(' --> send task ' + str(t.id) + ' to ' + engine.address + ' ' + str(engine.engine_id), 'blue')
+                        print_message(' --> send task ' + str(t.id) + ' to ' + engine.address + ' ' + str(engine.id), 'blue')
             lock.release()
             time.sleep(1)
             # print self.task_quere[0]

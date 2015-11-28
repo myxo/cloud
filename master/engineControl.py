@@ -5,14 +5,14 @@ import subprocess
 
 from utils import *
 
-class EngineInfo:
+class EngineControl:
     def __init__(self, address, engine_id, cores_available=1):
         self.address = address
         self.engine_username = 'worker'
         self.cores_available = cores_available
         self.task_active_list = {}
         self.summary_active_core = 0
-        self.engine_id = engine_id
+        self.id = engine_id
 
         self.working_directory = '/home/worker/' # FIXME get working path
         self.rsync_files(address, self.engine_username, self.working_directory)
@@ -27,7 +27,7 @@ class EngineInfo:
         sftp = self.client.open_sftp()
         # FIXME add exeption to this
         sftp.put(task.zip_file_path, self.working_directory + task.zip_filename)
-        command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.engine_id)
+        command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.id)
         threading.Thread(target=engine_exec_command_handler, args=(self.client, command, task)).start()
         self.summary_active_core += task.core_require
         
