@@ -56,7 +56,7 @@
 <script type="text/javascript">
     function getNewJSONStatus(){
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'http://localhost:8889/statusjson', false);
+        xhr.open('GET', 'statusjson', false);
         xhr.send();
         if (xhr.status != 200) {
           alert( xhr.status + ': ' + xhr.statusText );
