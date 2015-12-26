@@ -72,7 +72,27 @@ def httpServerFactory(init_args):
                 self.wfile.write(task_status)
 
 
+            elif path == '/task_full_status' or path == '/task_full_status/':
+                if 'task_id' not in args:
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("you should write propper task_id")
+                    return
 
+                task_id = int(args['task_id'][0])
+                if task_id not in self.taskpool.alltask:
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("there is no task with %d id"%task_id)
+                    return
+
+                task_status = self.taskpool.alltask[task_id].get_status()
+                self.send_response(200)
+                self.send_header('content-type','text/html')
+                self.end_headers()
+                self.wfile.write(task_status)
 
 
             elif path == '/task_result' or path == '/task_result/':
@@ -96,17 +116,7 @@ def httpServerFactory(init_args):
                     basename = str(task_id) + '_result.zip'
                     filename = self.file_storage + basename
 
-                    # FIXME adding stderr to archive shoud be sooner 
-                    # (not in request handler, maybe another thread with event lock?)
-                    # + duplication error when get result 2 times
-                    task_stderr = self.taskpool.alltask[task_id].stderr
-                    if task_stderr != '':
-                        z = zipfile.ZipFile(filename, "a", zipfile.ZIP_DEFLATED)
-                        z.writestr('stderr.txt', task_stderr)
-                        z.close()
-
                     self.send_response(200)
-                    # print 'Content-Type', 'application/zip; name="%s"'%basename
                     self.send_header('Content-Type', 'application/zip')
                     self.send_header('Content-Length', os.path.getsize(filename))
                     self.send_header('Content-Disposition', 'attachment;'

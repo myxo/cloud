@@ -6,9 +6,17 @@ from engineControl import EngineControl
 from utils import *
 
 class TaskPool:
-    def __init__(self, config):
-        self.config = config
+    """
+        Class for handling taskpool routing.
+        It containes task quere and engine control list, witch may
+        send task to particular server.
+    """
 
+    def __init__(self, config=None):
+        if config == None:
+            raise "TaskPool class should have config file. See documentaion."
+
+        self.config = config
         self.task_quere = Queue()
         self.alltask = {}
         self.engine_list = []
@@ -19,12 +27,16 @@ class TaskPool:
 
 
     def init_engines(self):
-        for i, engine_address in enumerate(self.config['engine address']):
-            self.engine_list.append(EngineControl(engine_address, i, cores_available=1))
+        """ Initialize engine control list, up engine servers.
+        """
+        engine_available = self.config['engine available']
+        for i, engine_config in enumerate(self.config['engines']):
+            if i in engine_available:
+                self.engine_list.append(EngineControl(engine_config, i))
 
         for engine in self.engine_list:
             engine.connect(self.username, self.userpass)
-            print engine.address + ' ready'
+            print engine.name + ' ready'
 
 
     def add_new_task(self, task):
@@ -39,11 +51,14 @@ class TaskPool:
 
         self.engine_list[engine_id].task_done(task_id)
         self.alltask[task_id].status = task_status
+        self.alltask[task_id].time_done = time.localtime()
 
         if task_status == 'done':
             print_message('  -  task done ' + str(task_id), 'green')
-        elif task_status == 'time':
+        elif task_status == 'timeout':
             print_message(' !-! task timeout ' + str(task_id), 'red')
+        else:
+            print print_message(' ERROR unknown task status!!' + str(task_id), 'red')
 
 
     def json_info(self):
@@ -52,7 +67,10 @@ class TaskPool:
         status['task_waiting'] = [task.id for task in self.task_quere.get_list()]
         for engine in self.engine_list:
             status[str(engine.id)] = [task.id for task in engine.task_active_list.values()]
-
+        filtered_list = filter(lambda x: x.status == 'done' or x.status == 'timeout', 
+                            self.alltask.values())
+        status['task_done'] = [task.id for task in filtered_list]
+        # print status
         return json.dumps(status)
                 
 
@@ -75,10 +93,10 @@ class TaskPool:
                     if engine.can_accept(self.task_quere.head()):
                         t = self.task_quere.get()
                         self.alltask[t.id].engine_id = engine.id
-                        self.alltask[t.id].status = 'proceed'
+                        self.alltask[t.id].status = 'running'
+                        self.alltask[t.id].time_send = time.localtime()
                         
                         engine.send_task(t)
                         print_message(' --> send task ' + str(t.id) + ' to ' + engine.address + ' ' + str(engine.id), 'blue')
             lock.release()
             time.sleep(1)
-            # print self.task_quere[0]

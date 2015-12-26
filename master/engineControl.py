@@ -2,33 +2,51 @@ import paramiko
 import time
 import threading
 import subprocess
+import requests
 
 from utils import *
 
 class EngineControl:
-    def __init__(self, address, engine_id, cores_available=1):
-        self.address = address
-        self.engine_username = 'worker'
-        self.cores_available = cores_available
+    def __init__(self, config, engine_id):
+        self.address =          config['address']
+        self.port =             config['port']
+        self.name =             config['name']  # FIXME try ... catch
+        self.engine_username =  config['engine_username']
+        self.cores_available =  config['cores_available']
+        self.working_directory = config['working_directory']
+
+        self.http_address = 'http://' + self.address + ':' + str(self.port)
+
         self.task_active_list = {}
         self.summary_active_core = 0
         self.id = engine_id
 
-        self.working_directory = '/home/worker/' # FIXME get working path
-        self.rsync_files(address, self.engine_username, self.working_directory)
+        self.rsync_files(self.address, self.engine_username, self.working_directory)
 
-        self.status = 'available' #FIXME not string status
+        self.status = 'available'
 
     def send_task(self, task): #FIXME put client to engineInfo class   
         self.status = 'busy'
         self.task_active_list[task.id] = task
         task.start_time = int(time.time())
+        task.time_send = time.localtime()
 
-        sftp = self.client.open_sftp()
-        # FIXME add exeption to this
-        sftp.put(task.zip_file_path, self.working_directory + task.zip_filename)
-        command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.id)
-        threading.Thread(target=engine_exec_command_handler, args=(self.client, command, task)).start()
+        # sftp = self.client.open_sftp()
+        # # FIXME add exeption to this
+        # sftp.put(task.zip_file_path, self.working_directory + task.zip_filename)
+        # command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.id)
+        # threading.Thread(target=engine_exec_command_handler, args=(self.client, command, task)).start()
+
+        # url = 'http://localhost:8887'
+        content = {'file': open(task.zip_file_path, 'rb'),
+                    'task_id': str(task.id),
+                    'engine_id': str(self.id)}
+        res = requests.post(self.http_address, files=content)
+        status_code = res.status_code
+        if status_code != 200:
+            print "ERROR in post request to the engine, task id - %d, engine id - "%(task.id, self.id)
+            return
+
         self.summary_active_core += task.core_require
         
     def task_done(self, task_id):
@@ -41,6 +59,7 @@ class EngineControl:
 
 
     def connect(self, username, userpass):
+        # FIXME we do not need client anymore
         self.client = paramiko.SSHClient()
         self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         try:
@@ -48,18 +67,36 @@ class EngineControl:
         except:
             print 'ERROR in connection to engine ' + self.address
             self.status = 'off'
+        # FIXME some freaking bug here. Should make keyboard interrupt twice. 
+        # Tired. Have no idea. Fix later. 
+        threading.Thread(target=server_upper_handler, args=(self.client, self.working_directory, self.port, self.name)).start()
+        
 
     def rsync_files(self, address, username, folder_to):
         files = ['../engine/engine_script.sh', 
                 '../engine/check_is_done.py',
                 '../engine/upload_result.py',
-                '../engine/engine_config']
+                '../engine/engine_config',
+                '../engine/httpServer.py']
         for f in files:
             subprocess.call(['rsync', f, username + '@' + address + ':' + folder_to])
 
     def disconnect(self):
+        try:
+            requests.get(self.http_address + '/kill/')
+        except requests.exceptions.ConnectionError:
+            print_message("ERROR in disconnect %s. Server is already down"%self.name, 'red')
+        except:
+            print 'some error =('
         self.client.close()
+        print self.name + ' disconnected'
 
+
+def server_upper_handler(client, working_directory, port, server_name):
+    stdin, stdout, stderr = client.exec_command('python ' + working_directory + 'httpServer.py ' + str(port) + ' &')
+    # for line in stderr:
+    print '{ from ' + server_name + ' } ', stderr.read()
+    # print stderr.read()
 
 def engine_exec_command_handler(client, command, task):
     stdin, stdout, stderr = client.exec_command(command)

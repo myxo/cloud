@@ -2,7 +2,7 @@
 
 import time
 
-time.sleep(5)
+time.sleep(2)
 
 a = 5
 b = 3

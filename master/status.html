@@ -11,19 +11,20 @@
     padding-right: 20px; 
     border: dashed 1px black; 
     float: left;
+    /*height: 100px;*/
    }
    .blockTaskDone { 
     width: 200px; 
     background: #ccc; 
     padding: 5px; 
     border: dashed 1px black; 
-    float: left; 
+    float: left;
+    /*height: 100px;*/
     position: relative; 
     /*top: 40px; */
     /*left: -70px; */
    }
    .blockServer{
-    width: 200px;
     background: #ddd;
     /*padding: 5px;
     padding-right: 20px; */
@@ -36,7 +37,7 @@
     padding: 5px;
     /*padding-right: 20px; */
     /*border: solid 1px black; */
-    /*float: left;*/
+    float: left;
    }
   </style> 
 </head>
@@ -47,10 +48,9 @@
 <div class="blockTaskDone" id="taskDone">qwe</div>
 <div class="blockTaskWaiting" id="taskWaiting">rty</div>
 <div class="blockServer">
-    <div id="server0" class="list">hello</div>
-</div>
-<div class="blockServer">
-    <div id="server1" class="list">hello</div>
+    <div id="server0" class="list" style="height:100px;">hello</div>
+    <div id="server1" class="list" style="height:240px;">hello</div>
+    <div id="server2" class="list" style="height:140px;">hello</div>
 </div>
 
 <script type="text/javascript">
@@ -58,12 +58,11 @@
         var xhr = new XMLHttpRequest();
         xhr.open('GET', 'statusjson', false);
         xhr.send();
+
         if (xhr.status != 200) {
-          alert( xhr.status + ': ' + xhr.statusText );
+          document.getElementById('taskWaiting').innerHTML = xhr.status + ': ' + xhr.statusText;
         } else {
-          // alert( xhr.responseText );
             var status_data = JSON.parse(xhr.responseText);
-            //alert(status_data.engine_names[0]);
             var text = 'taskWaiting:<br>';
             for (var i = 0; i < status_data['task_waiting'].length; i++){
                 text = text + '<br>'  + status_data['task_waiting'][i];
@@ -71,13 +70,20 @@
             console.log(text)
             document.getElementById('taskWaiting').innerHTML = text;
 
-            var text = 'server 0:<br>';
+            var text = 'taskDone:<br>';
+            for (var i = 0; i < status_data['task_done'].length; i++){
+                text = text + '<br>'  + status_data['task_done'][i];
+            }
+            console.log(text)
+            document.getElementById('taskDone').innerHTML = text;
+
+            text = 'server 0:<br>';
             for (var i = 0; i < status_data['0'].length; i++){
                 text = text + '<br>'  + status_data['0'][i];
             }
             document.getElementById('server0').innerHTML = text;
 
-            var text = 'server 1:<br>';
+            text = 'server 1:<br>';
             for (var i = 0; i < status_data['1'].length; i++){
                 text = text + '<br>'  + status_data['1'][i];
             }
