@@ -43,6 +43,12 @@ class HTTPMasterListener(BaseHTTPRequestHandler):
             self.server.shitdown()
             os._exit(0)
 
+        if self.path == '':
+            self.send_header(200)
+            self.send_header('content-type','text/html')
+            self.end_headers()
+            self.wfile.write('=)\n\n')
+
 
     def do_POST(self):
         # print 'checkpoint'
@@ -170,7 +176,7 @@ if __name__ == '__main__':
     except:
         port = 8887
     print 'start server on %d port'%port
-    serv = StoppableHTTPServer(("localhost",8887),HTTPMasterListener)
+    serv = StoppableHTTPServer(("",8887),HTTPMasterListener)
     serv.serve_forever()
     # serv.handle_request()
     # serv.shutdown()
