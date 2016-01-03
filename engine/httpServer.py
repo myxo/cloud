@@ -172,11 +172,12 @@ def run_command_with_timeout(cmd, timeout_sec):
 if __name__ == '__main__':
     # print 'hello'
     try :
-        port = int(sys.argv[1])
+        address = sys.argv[1]
+        port = int(sys.argv[2])
     except:
         port = 8887
     print 'start server on %d port'%port
-    serv = StoppableHTTPServer(("",8887),HTTPMasterListener)
+    serv = StoppableHTTPServer((address, port),HTTPMasterListener)
     serv.serve_forever()
     # serv.handle_request()
     # serv.shutdown()

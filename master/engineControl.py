@@ -69,7 +69,8 @@ class EngineControl:
             self.status = 'off'
         # FIXME some freaking bug here. Should make keyboard interrupt twice. 
         # Tired. Have no idea. Fix later. 
-        threading.Thread(target=server_upper_handler, args=(self.client, self.working_directory, self.port, self.name)).start()
+        threading.Thread(target=server_upper_handler, args=(self.client, self.working_directory, 
+                    self.address, self.port, self.name)).start()
         
 
     def rsync_files(self, address, username, folder_to):
@@ -92,8 +93,8 @@ class EngineControl:
         print self.name + ' disconnected'
 
 
-def server_upper_handler(client, working_directory, port, server_name):
-    stdin, stdout, stderr = client.exec_command('python ' + working_directory + 'httpServer.py ' + str(port) + ' &')
+def server_upper_handler(client, working_directory, server_address, port, server_name):
+    stdin, stdout, stderr = client.exec_command('python ' + working_directory + 'httpServer.py ' + server_address + ' ' + str(port) + ' &')
     # for line in stderr:
     print '{ from ' + server_name + ' } ', stderr.read()
     # print stderr.read()
