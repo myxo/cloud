@@ -19,7 +19,7 @@ ip = master_config['master address']
 port = master_config['master port']
 HTTPListener = httpServerFactory({'taskpool': tp})
 serv = HTTPServer((ip, port), HTTPListener)
-print 'Starting at port %d ....'%master_config['master port']
+print 'Starting master http server at port %d ....'%master_config['master port']
 
 
 try:

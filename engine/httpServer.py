@@ -10,6 +10,7 @@ import zipfile
 import requests
 import sys
 import threading
+import time
 
 
 class StoppableHTTPServer(HTTPServer):
@@ -40,18 +41,18 @@ class HTTPMasterListener(BaseHTTPRequestHandler):
         if self.path == '/kill/':
             self.send_response(200)
             self.server.stopped = True
-            self.server.shitdown()
+            self.server.shutdown()
             os._exit(0)
 
-        if self.path == '':
-            self.send_header(200)
+        if self.path == '' or self.path == '/':
+            self.send_response(200)
             self.send_header('content-type','text/html')
             self.end_headers()
             self.wfile.write('=)\n\n')
 
 
     def do_POST(self):
-        # print 'checkpoint'
+        print 'checkpoint'
         form = cgi.FieldStorage(
                 fp=self.rfile,
                 headers=self.headers,
@@ -61,27 +62,35 @@ class HTTPMasterListener(BaseHTTPRequestHandler):
 
         task_id     = int(form['task_id'].value)
         engine_id   = int(form['engine_id'].value)  # FIXME do we need engine_id here???
+        print '-----------+++++++++-----------------------'
         print task_id, engine_id
+        # import ipdb; ipdb.set_trace()
         try:
-            print 'qwerty'
             filename    = form['file'].filename
             print 'file: ' , filename
             data        = form['file'].file.read()
         except:
+            print 'error'
             self.send_response(400)
             return
         
-        file_abs_path = self.file_storage + "%s"%filename
-        open(file_abs_path, "wb").write(data)
         self.send_response(200)
+        print 'checkpoint 1'
+        file_abs_path = self.file_storage + "%s"%filename
+        try:
+            open(file_abs_path, "wb").write(data)
+        except:
+            print 'error in file writing'
+        print 'checkpoint 2'
 
+        print 'checkpoint 3'
         threading.Thread(target=run_task, args=(task_id, engine_id, self.file_storage, self.config['master_url'])).start()
 
-    def log_message(self, format, *args):
-        LOGFILE = 'http.log'
-        open(LOGFILE, "a").write("%s - - [%s] %s\n" % (self.address_string(),
-                    self.log_date_time_string(),
-                    format%args))
+    # def log_message(self, format, *args):
+    #     LOGFILE = 'http.log'
+    #     open(LOGFILE, "a").write("%s - - [%s] %s\n" % (self.address_string(),
+    #                 self.log_date_time_string(),
+    #                 format%args))
 
 
 
@@ -97,7 +106,7 @@ def run_task(task_id, engine_id, file_storage, master_url):
 
     print 'start task...'
     task_status, ret_code, stdout_value, stderr_value = run_command_with_timeout('./run.sh', timeout)
-    print task_status, ret_code
+    print 'status: ' + str(task_status) + ' code: ' + str(ret_code)
     print 'done.'
 
     if not os.path.isdir('result'):
@@ -139,8 +148,15 @@ def upload_result(filename, task_id, engine_id, task_status, url):
     request_content['task_id']          = str(task_id)
     request_content['engine_id']        = str(engine_id)
     request_content['task_status']      = task_status
-
-    requests.post(url, files=request_content)
+    
+    # import ipdb; ipdb.set_trace()
+    while 1:
+        try:
+            requests.post(url, files=request_content)
+            break
+        except requests.ConnectionError:
+            print 'error in post. Try again'
+            time.sleep(1) 
 
 def run_command_with_timeout(cmd, timeout_sec):
     """Execute `cmd` in a subprocess and enforce timeout `timeout_sec` seconds.
@@ -176,7 +192,7 @@ if __name__ == '__main__':
         port = int(sys.argv[2])
     except:
         port = 8887
-    print 'start server on %d port'%port
+    print 'start engine server on %d port'%port
     serv = StoppableHTTPServer((address, port),HTTPMasterListener)
     serv.serve_forever()
     # serv.handle_request()

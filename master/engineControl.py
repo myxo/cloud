@@ -37,14 +37,18 @@ class EngineControl:
         # command = self.working_directory + 'engine_script.sh ' + str(task.id) + ' ' + str(self.id)
         # threading.Thread(target=engine_exec_command_handler, args=(self.client, command, task)).start()
 
-        # url = 'http://localhost:8887'
         content = {'file': open(task.zip_file_path, 'rb'),
                     'task_id': str(task.id),
                     'engine_id': str(self.id)}
-        res = requests.post(self.http_address, files=content)
-        status_code = res.status_code
+        try:
+            res = requests.post(self.http_address, files=content)
+            status_code = res.status_code
+        except requests.ConnectionError, e:
+            # print e
+            status_code = 0
+
         if status_code != 200:
-            print "ERROR in post request to the engine, task id - %d, engine id - "%(task.id, self.id)
+            print "ERROR in post request to the engine, task id - %d, engine id - %d, status code - %d"%(task.id, self.id, status_code)
             return
 
         self.summary_active_core += task.core_require
@@ -74,12 +78,13 @@ class EngineControl:
         
 
     def rsync_files(self, address, username, folder_to):
-        files = ['../engine/engine_script.sh', 
-                '../engine/check_is_done.py',
-                '../engine/upload_result.py',
+        files = [#'../engine/engine_script.sh', 
+                #'../engine/check_is_done.py',
+                #'../engine/upload_result.py',
                 '../engine/engine_config',
                 '../engine/httpServer.py']
         for f in files:
+            # pass
             subprocess.call(['rsync', f, username + '@' + address + ':' + folder_to])
 
     def disconnect(self):
@@ -94,9 +99,12 @@ class EngineControl:
 
 
 def server_upper_handler(client, working_directory, server_address, port, server_name):
-    stdin, stdout, stderr = client.exec_command('python ' + working_directory + 'httpServer.py ' + server_address + ' ' + str(port) + ' &')
-    # for line in stderr:
-    print '{ from ' + server_name + ' } ', stderr.read()
+    # stdin, stdout, stderr = client.exec_command('python ' + working_directory + 'httpServer.py ' + server_address + ' ' + str(port) + ' &')
+    # # for line in stderr:
+    # print '{ from ' + server_name + ' } ', stderr.read()
+    pass
+    # for line in stdout:
+    #     print line
     # print stderr.read()
 
 def engine_exec_command_handler(client, command, task):
