@@ -53,6 +53,9 @@ class TaskPool:
         for engine in self.engine_list:
             status[str(engine.id)] = [task.id for task in engine.task_active_list.values()]
 
+        filtered_list = filter(lambda x: x.status == 'done' or x.status == 'timeout', 
+                            self.alltask.values())
+        status['task_done'] = [task.id for task in filtered_list]
         return json.dumps(status)
                 
 

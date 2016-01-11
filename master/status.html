@@ -54,6 +54,38 @@
 </div>
 
 <script type="text/javascript">
+    function removeDivChild(nodeID){
+        var myNode = document.getElementById(nodeID);
+        while (myNode.firstChild) {
+            myNode.removeChild(myNode.firstChild);
+        }
+    }
+
+    
+
+    
+
+    function createTaskDivById(taskId, parentElem){
+        var d = document.createElement('div');
+        d.innerHTML = taskId;
+        d.id = taskId;
+        d.onclick = function(e){
+            // var taskDiv = document.getElementById(taskId);
+            // function getTaskInfo(taskId){
+            //     var xhr = new XMLHttpRequest();
+
+            //     var url = 'task_full_status/' + taskId
+            //     xhr.open('GET', url, false);
+            //     var status_data = JSON.parse(xhr.responseText);
+            //     return status_data
+            // }
+            alert(e.id)
+            var statusData = getTaskInfo(e.id);
+            e.innerHTML = e.innerHTML + '\n' + statusData['timeout'];
+        };
+        parentElem.appendChild(d);
+    }
+
     function getNewJSONStatus(){
         var xhr = new XMLHttpRequest();
         xhr.open('GET', 'statusjson', false);
@@ -64,12 +96,19 @@
           // alert( xhr.responseText );
             var status_data = JSON.parse(xhr.responseText);
             //alert(status_data.engine_names[0]);
-            var text = 'taskWaiting:<br>';
+            // var text = 'taskWaiting:<br>';
+            removeDivChild("taskWaiting");
+            taskWaiting.appendChild(document.createTextNode("taskWaiting:\n\n"));
+
             for (var i = 0; i < status_data['task_waiting'].length; i++){
-                text = text + '<br>'  + status_data['task_waiting'][i];
+                // text = text + '<br>'  + status_data['task_waiting'][i];
+                // var q = document.createTextNode(status_data['task_waiting'][i] + '\n')
+                // taskWaiting.appendChild(q)
+                createTaskDivById(status_data['task_waiting'][i], taskWaiting);
             }
-            console.log(text)
-            document.getElementById('taskWaiting').innerHTML = text;
+            // console.log(text)
+            // taskWaiting.innerHTML = text;
+            // document.getElementById('taskWaiting').innerHTML = text;
 
             var text = 'server 0:<br>';
             for (var i = 0; i < status_data['0'].length; i++){
@@ -77,11 +116,13 @@
             }
             document.getElementById('server0').innerHTML = text;
 
-            var text = 'server 1:<br>';
-            for (var i = 0; i < status_data['1'].length; i++){
-                text = text + '<br>'  + status_data['1'][i];
+
+            removeDivChild("taskDone");
+            taskDone.appendChild(document.createTextNode("task done:\n\n"));
+            for (var i = 0; i < status_data['task_done'].length; i++){
+                createTaskDivById(status_data['task_done'][i], taskDone);
             }
-            document.getElementById('server1').innerHTML = text;
+            
         }
     }
 </script>

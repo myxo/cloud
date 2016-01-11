@@ -54,8 +54,8 @@ class EngineControl:
                 '../engine/check_is_done.py',
                 '../engine/upload_result.py',
                 '../engine/engine_config']
-        for f in files:
-            subprocess.call(['rsync', f, username + '@' + address + ':' + folder_to])
+        # for f in files:
+            # subprocess.call(['rsync', f, username + '@' + address + ':' + folder_to])
 
     def disconnect(self):
         self.client.close()

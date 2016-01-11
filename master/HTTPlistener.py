@@ -21,26 +21,24 @@ def httpServerFactory(init_args):
         def do_GET(self):
             url_splited = urlparse.urlsplit(self.path)
             path = url_splited.path
-            args = urlparse.parse_qs(url_splited.query)
+            path = path[1:].split('/')
+            # args = urlparse.parse_qs(url_splited.query)
 
 
-
-            if path == '/statusjson' or path == '/statusjson/':
+            if path[0] == 'statusjson' or path[1] == 'statusjson':
                 self.send_response(200)
                 self.send_header('content-type','text/json')
                 self.end_headers()
                 self.wfile.write(self.taskpool.json_info())
 
-            elif path == '/status' or path == '/status/':
+            elif path[0] == 'status':
                 self.send_response(200)
                 self.send_header('content-type','text/html')
                 self.end_headers()
                 self.wfile.write(open('status.html', 'rb').read())
-            
 
 
-
-            elif path == '' or path == '/':
+            elif path[0] == '':
                 self.send_response(200)
                 self.send_header('content-type','text/html')
                 self.end_headers()
@@ -48,16 +46,15 @@ def httpServerFactory(init_args):
             
 
 
-
-            elif path == '/task_status' or path == '/task_status/':
-                if 'task_id' not in args:
+            elif path[0] == 'task_status':
+                if path[1] == '':
                     self.send_response(400)
                     self.send_header('content-type','text/html')
                     self.end_headers()
                     self.wfile.write("you should write propper task_id")
                     return
 
-                task_id = int(args['task_id'][0])
+                task_id = int(path[1])
                 if task_id not in self.taskpool.alltask:
                     self.send_response(400)
                     self.send_header('content-type','text/html')
@@ -72,18 +69,38 @@ def httpServerFactory(init_args):
                 self.wfile.write(task_status)
 
 
-
-
-
-            elif path == '/task_result' or path == '/task_result/':
-                if 'task_id' not in args:
+            elif path[0] == 'task_full_status':
+                if path[1] == '':
                     self.send_response(400)
                     self.send_header('content-type','text/html')
                     self.end_headers()
                     self.wfile.write("you should write propper task_id")
                     return
 
-                task_id = int(args['task_id'][0])
+                task_id = int(path[1])
+                if task_id not in self.taskpool.alltask:
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("there is no task with %d id"%task_id)
+                    return
+
+                task_status = self.taskpool.alltask[task_id].get_status()
+                self.send_response(200)
+                self.send_header('content-type','text/html')
+                self.end_headers()
+                self.wfile.write(task_status)
+
+
+            elif path[0] == 'task_result':
+                if path[1] == '':
+                    self.send_response(400)
+                    self.send_header('content-type','text/html')
+                    self.end_headers()
+                    self.wfile.write("you should write propper task_id")
+                    return
+
+                task_id = int(path[1])
                 if task_id not in self.taskpool.alltask:
                     self.send_response(400)
                     self.send_header('content-type','text/html')
